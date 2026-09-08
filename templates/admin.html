@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlacaReview — Painel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 { font-size: 1.3rem; font-weight: 700; }
+    header span { font-size: 0.85rem; opacity: 0.6; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+
+    /* Card de cadastro */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 28px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border 0.2s;
+      outline: none;
+    }
+
+    input:focus { border-color: #4285F4; }
+
+    .btn {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #4285F4; color: white; }
+    .btn-danger  { background: #ff4d4d; color: white; font-size: 0.78rem; padding: 7px 14px; }
+    .btn-qr      { background: #1a1a2e; color: white; font-size: 0.78rem; padding: 7px 14px; }
+
+    /* Tabela */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: #f8f9fa;
+      color: #888;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #eee;
+    }
+
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+
+    .badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #4285F4;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+      font-family: monospace;
+    }
+
+    .url-cell {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #888;
+      font-size: 0.82rem;
+    }
+
+    .actions { display: flex; gap: 8px; }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .total {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 12px;
+    }
+
+    .total strong { color: #1a1a2e; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📍 PlacaReview</h1>
+    <span>Painel de gerenciamento de placas</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Formulário de cadastro -->
+  <div class="card">
+    <h2>➕ Cadastrar nova placa</h2>
+    <form action="/admin/cadastrar" method="POST">
+      <div class="form-grid">
+        <div>
+          <label>Nome do cliente</label>
+          <input type="text" name="cliente" placeholder="Ex: João Silva" required />
+        </div>
+        <div>
+          <label>Nome do negócio</label>
+          <input type="text" name="negocio" placeholder="Ex: Barbearia do João" required />
+        </div>
+        <div class="full">
+          <label>Link de avaliação do Google</label>
+          <input type="url" name="url_google"
+            placeholder="https://g.page/r/... ou https://maps.google.com/..."
+            required />
+        </div>
+      </div>
+      <br/>
+      <button type="submit" class="btn btn-primary">✅ Cadastrar e gerar código</button>
+    </form>
+  </div>
+
+  <!-- Lista de placas -->
+  <div class="card">
+    <h2>📋 Placas cadastradas</h2>
+
+    {% if placas %}
+      <p class="total">Total: <strong>{{ placas|length }} placa(s)</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Negócio</th>
+              <th>Link Google</th>
+              <th>Cadastrado em</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in placas %}
+            <tr>
+              <td><span class="badge">{{ p.codigo }}</span></td>
+              <td>{{ p.cliente }}</td>
+              <td>{{ p.negocio }}</td>
+              <td class="url-cell" title="{{ p.url_google }}">{{ p.url_google }}</td>
+              <td>{{ p.criado_em[:10] }}</td>
+              <td>
+                <div class="actions">
+                  <a href="/qr/{{ p.codigo }}" target="_blank">
+                    <button class="btn btn-qr">📷 QR</button>
+                  </a>
+                  <form action="/admin/deletar/{{ p.id }}" method="POST"
+                        onsubmit="return confirm('Deletar {{ p.negocio }}?')">
+                    <button class="btn btn-danger">🗑 Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">Nenhuma placa cadastrada ainda. Cadastre a primeira acima! 👆</p>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>
